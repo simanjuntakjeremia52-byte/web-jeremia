@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Pribadi Profesional</title>
+    <!-- Library untuk efek kembang api di Menu Kampus -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        /* ================== CSS RESET & DASAR ================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            color: #fff;
+            overflow-x: hidden;
+            background-color: #000;
+        }
+
+        /* ================== BACKGROUND SLIDER (3 Detik / Foto) ================== */
+        .bg-slider {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100vh;
+            z-index: -1;
+            background-size: cover;
+            background-position: center;
+            animation: slideBg 9s infinite;
+        }
+        
+        @keyframes slideBg {
+            0%, 30% { background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://i.ibb.co.com/gM84WZx4/Whats-App-Image-2026-07-29-at-17-10-08.jpg'); }
+            33%, 63% { background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://i.ibb.co.com/XrLN62Cy/download-21.jpg'); }
+            66%, 96% { background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://i.ibb.co.com/YF1whFn5/download-20.jpg'); }
+            100% { background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://i.ibb.co.com/m551Ksws/download-19.jpg'); }
+        }
+
+        /* ================== ANIMASI WELCOME ================== */
+        #welcome-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100vh;
+            background: #111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 1s ease-out;
+        }
+        #welcome-screen h1 {
+            font-size: 3rem;
+            background: linear-gradient(45deg, #00c6ff, #0072ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: popIn 1.5s ease-out forwards;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* ================== NAVBAR GLASSMORPHISM ================== */
+        nav {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px 25px;
+            border-radius: 30px;
+            display: flex;
+            gap: 15px;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .nav-btn {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 8px 18px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 5px 15px rgba(255,255,255,0.3);
+        }
+        .nav-btn.active {
+            background: linear-gradient(45deg, #ff416c, #ff4b2b);
+            transform: translateY(2px);
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        /* ================== KAMAR (RUANGAN KONTEN) ================== */
+        main {
+            padding-top: 110px;
+            padding-bottom: 100px;
+            width: 90%;
+            max-width: 1000px;
+            margin: auto;
+        }
+        .section-container {
+            display: none;
+            animation: fadeIn 0.6s ease-in-out;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 40px;
+            border: 1px solid rgba(255,255,255,0.15);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .section-container.active { display: block; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ================== PROFIL ================== */
+        .profil-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+        .img-gradient-border {
+            background: linear-gradient(45deg, #ff0000, #0000ff);
+            padding: 6px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .img-gradient-border img {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+            border: 4px solid #111;
+        }
+        .data-diri p { margin: 10px 0; font-size: 1.15rem; line-height: 1.5; }
+        .data-diri strong { color: #00c6ff; }
+        
+        .profil-video-container {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .profil-video-container video {
+            max-width: 100%;
+            height: auto; 
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            outline: none;
+        }
+
+        /* ================== FOTO & PORTOFOLIO GRID ================== */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 25px;
+        }
+        .foto-item {
+            position: relative;
+            aspect-ratio: 9/16;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.6);
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+        .foto-item:hover { transform: scale(1.03); }
+        .foto-item img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            transition: 0.3s;
+        }
+        .foto-item img:hover { filter: brightness(1.1); }
+        .foto-item .teks {
+            position: absolute;
+            bottom: 0; left: 0; width: 100%;
+            background: linear-gradient(transparent, rgba(0,0,0,0.9));
+            padding: 20px 10px 10px;
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 500;
+            pointer-events: none;
+        }
+
+        /* ================== PORTOFOLIO ================== */
+        .porto-item {
+            background: linear-gradient(135deg, #1e3c72, #2a5298, #ff416c);
+            border-radius: 15px;
+            padding: 4px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+            text-align: center;
+            transition: transform 0.4s;
+        }
+        .porto-item:hover { transform: translateY(-10px); }
+        .porto-inner {
+            background: #151515;
+            border-radius: 12px;
+            padding: 15px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .porto-inner img {
+            width: 100%;
+            aspect-ratio: 16/9;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .porto-inner img:hover { filter: brightness(1.2); }
+        .porto-inner h3 { color: #00c6ff; margin-bottom: 8px; }
+        .porto-inner p { font-size: 0.95rem; color: #ddd; flex-grow: 1; }
+
+        /* ================== KAMPUS ================== */
+        #kampus-animasi {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 350px;
+        }
+        #kampus-animasi img {
+            width: 180px;
+            animation: pulseLogo 1.5s infinite alternate;
+        }
+        @keyframes pulseLogo {
+            from { transform: scale(0.9); filter: drop-shadow(0 0 10px rgba(255,255,255,0.5)); }
+            to { transform: scale(1.1); filter: drop-shadow(0 0 30px rgba(255,255,255,0.9)); }
+        }
+        #kampus-data {
+            display: none;
+            margin-top: 20px;
+        }
+        .kampus-table { width: 100%; border-collapse: collapse; }
+        .kampus-table td {
+            padding: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+            font-size: 1.15rem;
+        }
+        .kampus-table td:first-child { font-weight: bold; width: 40%; color: #ff4b2b; }
+
+        /* ================== PLAYLIST SPOTIFY ================== */
+        .spotify-embed {
+            margin-bottom: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+        .playlist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+        .song-item {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s ease;
+        }
+        .song-item:hover {
+            background: rgba(255,255,255,0.15);
+            transform: translateX(5px);
+            border-color: #1DB954; 
+        }
+        .song-item img {
+            width: 60px; height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .song-info h4 { margin: 0; font-size: 1.05rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+        .song-info p { margin: 4px 0 0 0; font-size: 0.85rem; color: #bbb; }
+
+        /* ================== FOOTER ================== */
+        footer {
+            position: fixed;
+            bottom: 0; left: 0; width: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            text-align: center;
+            z-index: 1000;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        footer p { margin-bottom: 12px; font-size: 1rem; }
+        .sosmed-links a {
+            color: #fff;
+            margin: 0 10px;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 8px 20px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.15);
+            transition: 0.3s;
+            display: inline-block;
+        }
+        .sosmed-links a:hover { background: #fff; color: #000; }
+
+        /* ================== LIGHTBOX MODAL (EFEK PERBESAR FOTO) ================== */
+        #lightbox-modal {
+            display: none;
+            position: fixed;
+            z-index: 10001;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        #lightbox-modal.show {
+            display: flex;
+            opacity: 1;
+        }
+        #lightbox-img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 10px;
+            box-shadow: 0 5px 30px rgba(0,0,0,0.8);
+            animation: zoomIn 0.3s ease;
+            object-fit: contain;
+        }
+        @keyframes zoomIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .close-lightbox {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: #fff;
+            font-size: 45px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            z-index: 10002;
+        }
+        .close-lightbox:hover {
+            color: #ff4b2b;
+            transform: scale(1.2);
+        }
+
+        /* Responsif */
+        @media (max-width: 768px) {
+            .profil-wrapper { flex-direction: column; text-align: center; }
+            nav { width: 95%; flex-wrap: wrap; justify-content: center; gap: 8px; }
+            .nav-btn { font-size: 0.9rem; padding: 6px 12px; }
+            .kampus-table td { font-size: 1rem; }
+            .close-lightbox { top: 10px; right: 20px; font-size: 35px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Lightbox Modal untuk Memperbesar Foto -->
+    <div id="lightbox-modal" onclick="tutupLightbox(event)">
+        <span class="close-lightbox" onclick="tutupLightbox(event)">&times;</span>
+        <img id="lightbox-img" src="" alt="Foto Diperbesar">
+    </div>
+
+    <!-- Animasi Welcome -->
+    <div id="welcome-screen">
+        <h1>Selamat Datang!</h1>
+    </div>
+
+    <!-- Background -->
+    <div class="bg-slider"></div>
+
+    <!-- Navigasi Bar -->
+    <nav>
+        <button class="nav-btn active" onclick="bukaKamar('profil', this)">Profil</button>
+        <button class="nav-btn" onclick="bukaKamar('foto', this)">Foto</button>
+        <button class="nav-btn" onclick="bukaKamar('portofolio', this)">Portofolio</button>
+        <button class="nav-btn" onclick="bukaKamar('kampus', this)">Kampus</button>
+        <button class="nav-btn" onclick="bukaKamar('playlist', this)">Playlist</button>
+    </nav>
+
+    <main>
+        <!-- ================== KAMAR 1: PROFIL ================== -->
+        <section id="profil" class="section-container active">
+            <h2 style="margin-bottom: 30px; text-align: center; font-size: 2rem;">Profil Saya</h2>
+            
+            <div class="profil-wrapper">
+                <div class="img-gradient-border">
+                    <img src="https://i.ibb.co.com/4whQ2jbm/Whats-App-Image-2026-07-28-at-03-21-42.jpg" alt="Foto Profil">
+                </div>
+                <div class="data-diri">
+                    <p><strong>Nama:</strong> Jeremia Simanjuntak</p>
+                    <p><strong>Email:</strong> simanjuntakjeremia52@gmail.com</p>
+                    <p><strong>Minat & Keahlian:</strong> Design Grafis, Copywrittter, Eksplorasi Coding</p>
+                    <p><strong>Domisisli:</strong> Medan, Sumatera Utara</p>
+                    <p><strong>Tentang Saya:</strong> Merupakan mahasiswa bidang kesehatan masyarakat yang punya visi yang jauh ke depan dan jangka panjang, serta pribadi yang memikirkan segala aspek sebelum membuat suatu keputusan.</p>
+                </div>
+            </div>
+
+            <!-- Bagian Video Klip Profil -->
+            <div class="profil-video-container">
+                <h3 style="margin-bottom: 15px; color: #fff;">Video Profil(Coming Soon)</h3>
+                <video controls>
+                    <source src="video-kamu.mp4" type="video/mp4">
+                    Browser Anda tidak mendukung tag video.
+                </video>
+            </div>
+        </section>
+
+        <!-- ================== KAMAR 2: FOTO (GALERI) ================== -->
+        <section id="foto" class="section-container">
+            <h2 style="margin-bottom: 25px; text-align: center; font-size: 2rem;">Galeri Perjalanan</h2>
+            
+            <!-- Ditambahkan 2 slot baru sehingga total menjadi 6 foto -->
+            <div class="grid-container" id="wadah-foto">
+                <div class="foto-item">
+                    <img src="https://i.ibb.co.com/4ZL7WbNt/Whats-App-Image-2026-07-29-at-16-30-19-1.jpg" alt="Pemandangan 1">
+                    <div class="teks">Pulau Nain, Manado</div>
+                </div>
+                <div class="foto-item">
+                    <img src="https://i.ibb.co.com/rGzk28Hw/Whats-App-Image-2026-07-29-at-17-09-16.jpg" alt="Pemandangan 2">
+                    <div class="teks">Gunung Soputan, Minahasa Selatan</div>
+                </div>
+                <div class="foto-item">
+                    <img src="https://i.ibb.co.com/x8Jr93Lg/Whats-App-Image-2026-07-29-at-16-31-03.jpg" alt="Pemandangan 3">
+                    <div class="teks">Bunaken, Manado</div>
+                </div>
+                <div class="foto-item">
+                    <img src="https://i.ibb.co.com/cKXgKRK2/Whats-App-Image-2026-07-30-at-13-47-30.jpg" alt="Pemandangan 4">
+                    <div class="teks">Sibea-bea, Samosir</div>
+                </div>
+                <!-- Slot Foto 5 Baru -->
+                <div class="foto-item">
+                    <img src="https://i.ibb.co.com/rRKDYTKQ/Whats-App-Image-2026-07-30-at-13-57-13.jpg" alt="Pemandangan 5">
+                    <div class="teks">Sabar admin bingung up foto apa</div>
+                </div>
+                <!-- Slot Foto 6 Baru -->
+                <div class="foto-item">
+                    <img src="https://i.ibb.co.com/rRKDYTKQ/Whats-App-Image-2026-07-30-at-13-57-13.jpg" alt="Pemandangan 6">
+                    <div class="teks">Sabar admin bingung up foto apa</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================== KAMAR 3: PORTOFOLIO ================== -->
+        <section id="portofolio" class="section-container">
+            <h2 style="margin-bottom: 25px; text-align: center; font-size: 2rem;">Portofolio & Karya</h2>
+            
+            <div class="grid-container" id="wadah-porto">
+                <!-- Portofolio 1 -->
+                <div class="porto-item">
+                    <div class="porto-inner">
+                        <img src="https://i.ibb.co.com/ds7VwmFk/Whats-App-Image-2026-07-30-at-15-14-54.jpg" alt="Proyek 1">
+                        <h3>Sertifikat UTBK 2026</h3>
+                        <p>Berhasil meraih nilai UTBK dengan skor rata-rata 713.</p>
+                    </div>
+                </div>
+                <!-- Portofolio 2 -->
+                <div class="porto-item">
+                    <div class="porto-inner">
+                        <img src="https://i.ibb.co.com/603JcCxx/Whats-App-Image-2026-07-28-at-22-48-14-1.jpg" alt="Proyek 2">
+                        <h3>Design Simple untuk Poster</h3>
+                        <p>Design simple menggunakan software seperti Canva dan Figma.</p>
+                    </div>
+                </div>
+                <!-- Portofolio 3 -->
+                <div class="porto-item">
+                    <div class="porto-inner">
+                        <img src="https://i.ibb.co.com/rRKDYTKQ/Whats-App-Image-2026-07-30-at-13-57-13.jpg" alt="Proyek 3">
+                        <h3>Coming Soon</h3>
+                        <p>Tunggu Portofolio Selanjutnya ya :)</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================== KAMAR 4: KAMPUS ================== -->
+        <section id="kampus" class="section-container">
+            <h2 style="margin-bottom: 20px; text-align: center; font-size: 2rem;">Data Akademik</h2>
+            
+            <div id="kampus-animasi">
+                <img src="https://cdn-icons-png.flaticon.com/512/3257/3257222.png" alt="Logo Kampus">
+                <h3 style="margin-top: 25px; color: #38ef7d;">Memuat Data Akademik...</h3>
+            </div>
+
+            <div id="kampus-data">
+                <table class="kampus-table">
+                    <tr><td>Nama Kampus</td><td>Institut Kesehatan Medistra</td></tr>
+                    <tr><td>Fakultas</td><td>Kesehatan Masyarakat</td></tr>
+                    <tr><td>Prodi</td><td>Kesehatan Masyarakat</td></tr>
+                    <tr><td>NIM</td><td>2521047</td></tr>
+                    <tr><td>Semester</td><td>3</td></tr>
+                    <tr><td>Tingkat</td><td>II</td></tr>
+                    <tr><td>Lokasi Kampus</td><td>Lubuk Pakam, Sumatera Utara</td></tr>
+                    <tr><td>IPK Saat Ini</td><td>3,72</td></tr>
+                    <tr><td>Target IPK</td><td>3.85(Cumlaude)</td></tr>
+                    <tr><td>Angkatan</td><td>2025</td></tr>
+                    <tr><td>Tahun Masuk</td><td>2025</td></tr>
+                    <tr><td>Target Tahun Lulus</td><td>2029</td></tr>
+                </table>
+            </div>
+        </section>
+
+        <!-- ================== KAMAR 5: PLAYLIST ================== -->
+        <section id="playlist" class="section-container">
+            <h2 style="margin-bottom: 25px; text-align: center; font-size: 2rem;">Playlist Spotify Saya</h2>
+            
+            <!-- Akses Langsung Spotify Embed -->
+            <div class="spotify-embed">
+                <iframe src="https://open.spotify.com/embed/playlist/0k8A3YvPTujmgX3QRWSuEc?utm_source=generator&theme=0" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+            </div>
+
+            <h3 style="margin-bottom: 15px; color: #1DB954; text-align: center;">Daftar Lagu (Top 15 Lagu Gue)</h3>
+            
+            <!-- Daftar 15 Lagu (Grid) -->
+            <div class="playlist-grid">
+                <!-- Lagu 1 -->
+                <div class="song-item">
+                    <img src="https://i.ibb.co.com/HTFqWVyj/The-Weeknd-Starboy-2016.jpg" alt="Cover 1">
+                    <div class="song-info">
+                        <h4>Starboy</h4>
+                        <p>The Weekend</p>
+                    </div>
+                </div>
+                <!-- Lagu 2 -->
+                <div class="song-item">
+                    <img src="https://i.ibb.co.com/BVXGZffj/Hindia-Mixtape-Cover-Doves-25-on-Blank-Canvas.jpg" alt="Cover 2">
+                    <div class="song-info">
+                        <h4>Everything U Are</h4>
+                        <p>Hindia</p>
+                    </div>
+                </div>
+                <!-- Lagu 3 -->
+                <div class="song-item">
+                    <img src="https://i.scdn.co/image/ab67616d0000b2738863bc11d2aa12b54f5aeb36" alt="Cover 3">
+                    <div class="song-info">
+                        <h4>Blinding Lights</h4>
+                        <p>The Weeknd</p>
+                    </div>
+                </div>
+                <!-- Lagu 4 -->
+                <div class="song-item">
+                    <img src="https://i.ibb.co.com/Kx1NPZjy/PERADAN-FEAST-SINGLE-COVER-FINAL-RGB-1.jpg" alt="Cover 4">
+                    <div class="song-info">
+                        <h4>Peradaban</h4>
+                        <p>Feast</p>
+                    </div>
+                </div>
+                <!-- Lagu 5 -->
+                <div class="song-item">
+                    <img src="https://i.ibb.co.com/XxZMTvvQ/blackpink-album-the-idol-jennie-one-of-the-girls-the-weeknd-lily-rose-depp-650x650.jpg" alt="Cover 5">
+                    <div class="song-info">
+                        <h4>One of the Girl</h4>
+                        <p>The Weekend - JENNIE</p>
+                    </div>
+                </div>
+                <!-- Lagu 6 -->
+                <div class="song-item">
+                    <img src="https://i.ibb.co.com/3YSHFRV5/c979886a59d2f11b8079bf95bbaba675-1000x1000x1.png" alt="Cover 6">
+                    <div class="song-info">
+                        <h4>Popular</h4>
+                        <p>The Weekend</p>
+                    </div>
+                </div>
+                <!-- Lagu 7 -->
+                <div class="song-item">
+                    <img src="https://i.ibb.co.com/67HZXdH5/d16ab978dc13fbebf1708f5866ca8b24-1000x1000x1.png" alt="Cover 7">
+                    <div class="song-info">
+                        <h4>Cincin</h4>
+                        <p>Hindia</p>
+                    </div>
+                </div>
+                <!-- Lagu 8 -->
+                <div class="song-item">
+                    <img src="https://i.ibb.co.com/pBL9b0pz/774c6015c51bdc6178bae7b773f2be13-1000x1000x1.webp" alt="Cover 8">
+                    <div class="song-info">
+                        <h4>Kami Belum Tentu</h4>
+                        <p>Feast</p>
+                    </div>
+                </div>
+                <!-- Lagu 9 -->
+                <div class="song-item">
+                    <img src="https://i.scdn.co/image/ab67616d0000b27320e08c8cc23f404d723b5647" alt="Cover 9">
+                    <div class="song-info">
+                        <h4>Heat Waves</h4>
+                        <p>Glass Animals</p>
+                    </div>
+                </div>
+                <!-- Lagu 10 -->
+                <div class="song-item">
+                    <img src="https://i.ibb.co.com/v67PnjQt/Confident.jpg" alt="Cover 10">
+                    <div class="song-info">
+                        <h4>Confident</h4>
+                        <p>Justin Bieber</p>
+                    </div>
+                </div>
+                <!-- Lagu 11 -->
+                <div class="song-item">
+                    <img src="https://i.ibb.co.com/zhgXNF2t/MV5-BNj-Fl-MDc0-Mj-Mt-MGVm-Ny00-ZDcy-LWIz-MGMt-MTc4-Yzkx-MDRl-ZDQ1-Xk-Ey-Xk-Fqc-Gc-V1-FMjpg-UX1000.jpg" alt="Cover 11">
+                    <div class="song-info">
+                        <h4>Hey Daddy(Daddy's Home)</h4>
+                        <p>USHER</p>
+                    </div>
+                </div>
+                <!-- Lagu 12 -->
+                <div class="song-item">
+                    <img src="https://i.ibb.co.com/B2RDw91Q/50-cent-baby-by-me-cover-2009.jpg" alt="Cover 12">
+                    <div class="song-info">
+                        <h4>Baby by Me</h4>
+                        <p>50 Cent</p>
+                    </div>
+                </div>
+                <!-- Lagu 13 -->
+                <div class="song-item">
+                    <img src="https://i.ibb.co.com/M5cp1Dk2/download-18.jpg" alt="Cover 13">
+                    <div class="song-info">
+                        <h4>Bloody Mary</h4>
+                        <p>Lady Gaga</p>
+                    </div>
+                </div>
+                <!-- Lagu 14 -->
+                <div class="song-item">
+                    <img src="https://i.ibb.co.com/ycJJMJ31/Poker-Face.jpg" alt="Cover 14">
+                    <div class="song-info">
+                        <h4>Poker Face</h4>
+                        <p>lady Gaga</p>
+                    </div>
+                </div>
+                <!-- Lagu 15 -->
+                <div class="song-item">
+                    <img src="https://i.ibb.co.com/kgczCdg0/OIP-3.jpg" alt="Cover 15">
+                    <div class="song-info">
+                        <h4>Mary on A Cross</h4>
+                        <p>Ghost</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ================== FOOTER KONTAK ================== -->
+    <footer>
+        <p>Jika ada hal penting atau memerlukan bantuan, silakan hubungi kontak berikut:</p>
+        <div class="sosmed-links">
+            <a href="https://www.instagram.com/callmiaaa_?igsh=cXp6YXRjNjVneXk1" target="_blank">Instagram</a>
+            <a href="https://wa.me/6283810327507" target="_blank">WhatsApp</a>
+            <a href="https://t.me/jeremiadisini" target="_blank">Telegram</a>
+        </div>
+    </footer>
+
+    <!-- ================== SCRIPT JAVASCRIPT ================== -->
+    <script>
+        // 1. Animasi Layar Selamat Datang
+        setTimeout(() => {
+            const welcome = document.getElementById('welcome-screen');
+            welcome.style.opacity = '0';
+            setTimeout(() => welcome.style.display = 'none', 1000);
+        }, 2200);
+
+        // 2. Fungsi Pindah Navigasi (Membuka Kamar)
+        function bukaKamar(idKamar, elemenTombol) {
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.section-container').forEach(sec => sec.classList.remove('active'));
+            
+            elemenTombol.classList.add('active');
+            document.getElementById(idKamar).classList.add('active');
+
+            if(idKamar === 'kampus') {
+                const anim = document.getElementById('kampus-animasi');
+                const data = document.getElementById('kampus-data');
+                
+                anim.style.display = 'flex';
+                data.style.display = 'none';
+
+                confetti({
+                    particleCount: 150,
+                    spread: 80,
+                    origin: { y: 0.6 },
+                    colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#00ffff']
+                });
+
+                setTimeout(() => {
+                    anim.style.display = 'none';
+                    data.style.display = 'block';
+                }, 2500);
+            }
+            
+            const profilVideo = document.querySelector('.profil-video-container video');
+            if(idKamar !== 'profil' && profilVideo) {
+                profilVideo.pause();
+            }
+        }
+
+        // 3. Fitur Lightbox (Memperbesar Foto Saat Diklik)
+        function tutupLightbox(event) {
+            if (event.target.id === 'lightbox-modal' || event.target.classList.contains('close-lightbox')) {
+                document.getElementById('lightbox-modal').classList.remove('show');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const images = document.querySelectorAll('.foto-item img, .porto-inner img');
+            
+            images.forEach(img => {
+                img.addEventListener('click', function() {
+                    const modal = document.getElementById('lightbox-modal');
+                    const modalImg = document.getElementById('lightbox-img');
+                    
+                    modalImg.src = this.src;
+                    modal.classList.add('show');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
