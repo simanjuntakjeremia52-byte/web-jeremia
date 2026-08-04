@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Matter.js Physics Engine -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
     
     <style>
         /* ==========================================
@@ -32,7 +34,7 @@
             justify-content: space-between;
         }
 
-        /* 3D Perspective Grid Background (Sesuai Gambar) */
+        /* 3D Perspective Grid Background */
         .grid-background {
             position: fixed;
             top: 0;
@@ -92,7 +94,6 @@
             margin: 0 auto;
         }
 
-        /* Pop-up Social Icons at Header */
         .social-pop-container {
             display: flex;
             justify-content: center;
@@ -132,7 +133,6 @@
             }
         }
 
-        /* Typewriter Animation Header */
         .welcome-title {
             font-size: clamp(1.8rem, 4vw, 2.8rem);
             font-weight: 800;
@@ -167,7 +167,6 @@
             50% { opacity: 0; }
         }
 
-        /* Music Floating Control Toggle */
         .music-control-btn {
             position: fixed;
             top: 20px;
@@ -189,6 +188,27 @@
 
         .music-control-btn:hover {
             transform: scale(1.1);
+        }
+
+        /* Reset Button untuk memulihkan halaman setelah runtuh */
+        .physics-reset-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            padding: 10px 18px;
+            border-radius: 30px;
+            background: rgba(255, 77, 77, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
         }
 
         /* ==========================================
@@ -268,7 +288,6 @@
             border-radius: 30px;
         }
 
-        /* Timbul Text Hover Effect */
         .nav-btn:hover {
             color: #ffffff;
             transform: translateY(-2px);
@@ -281,7 +300,6 @@
             text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
         }
 
-        /* Liquid Glass Layer Overlay for Active Menu */
         .liquid-glare-indicator {
             position: absolute;
             height: 80%;
@@ -471,7 +489,6 @@
         }
         @media (max-width: 600px) { .portfolio-item { grid-template-columns: 1fr; } }
 
-        /* Hover Effect: Full Color, Timbul, Shine Light Pass */
         .portfolio-item:hover {
             filter: grayscale(0%); transform: translateY(-5px) scale(1.01);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 242, 254, 0.2);
@@ -548,6 +565,15 @@
             .contact-card { flex-direction: column; gap: 15px; align-items: flex-start; }
             .contact-action-btn { width: 100%; justify-content: center; }
         }
+
+        /* Class khusus saat simulasi fisika aktif */
+        .physics-active {
+            position: fixed !important;
+            margin: 0 !important;
+            transform-origin: center center !important;
+            will-change: transform;
+            pointer-events: auto !important;
+        }
     </style>
 </head>
 <body>
@@ -556,6 +582,11 @@
     <div class="grid-background">
         <div class="grid-plane"></div>
     </div>
+
+    <!-- Physics Reset Button (Akan muncul setelah guncangan) -->
+    <button class="physics-reset-btn" id="physicsResetBtn" onclick="resetPhysicsLayout()">
+        <i class="fa-solid fa-rotate-left"></i> Pulihkan Halaman
+    </button>
 
     <!-- Music Control Toggle Button -->
     <button class="music-control-btn" id="musicToggleBtn" title="Aktifkan/Matikan Musik Latar">
@@ -899,7 +930,7 @@
     </div>
 
     <!-- NAVBAR FLOATING GLASS -->
-    <div class="navbar-wrapper">
+    <div class="navbar-wrapper" id="navbarWrapper">
         <nav class="liquid-navbar">
             <div class="nav-items">
                 <div class="liquid-glare-indicator" id="glareIndicator"></div>
@@ -908,7 +939,6 @@
                 <button class="nav-btn" onclick="switchTab('portofolio', this)">PORTOFOLIO</button>
                 <button class="nav-btn" onclick="switchTab('kontak', this)">KONTAK</button>
             </div>
-            <!-- Profil Bulat di Navbar Hiasan -->
             <div class="nav-avatar-box">
                 <img src="https://i.ibb.co.com/zT7vfzfR/1784534211542.png" alt="Avatar Hiasan" class="nav-avatar-img">
             </div>
@@ -941,11 +971,12 @@
             setTimeout(typeTitle, 600);
             updateNavIndicator(document.querySelector('.nav-btn.active'));
             triggerAnimations();
+            initShakeListener();
         });
 
         function updateNavIndicator(activeBtn) {
             const indicator = document.getElementById('glareIndicator');
-            if (!activeBtn || !indicator) return;
+            if (!activeBtn || !indicator || isPhysicsActive) return;
             const btnRect = activeBtn.getBoundingClientRect();
             const parentRect = activeBtn.parentElement.getBoundingClientRect();
             indicator.style.left = `${btnRect.left - parentRect.left}px`;
@@ -953,6 +984,7 @@
         }
 
         function switchTab(tabId, btnElement) {
+            if (isPhysicsActive) return;
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             btnElement.classList.add('active');
             updateNavIndicator(btnElement);
@@ -983,6 +1015,7 @@
         });
 
         function triggerAnimations() {
+            if (isPhysicsActive) return;
             document.querySelectorAll('.skill-bar-fill').forEach(bar => {
                 bar.style.width = '0%';
                 setTimeout(() => { bar.style.width = bar.getAttribute('data-percent'); }, 100);
@@ -1028,6 +1061,7 @@
         let isZoomed = false;
 
         function openLightbox(index) {
+            if (isPhysicsActive) return;
             currentLightboxIdx = index;
             updateLightboxContent();
             modal.classList.add('active');
@@ -1063,6 +1097,168 @@
         modal.addEventListener('click', (e) => {
             if (e.target === modal || e.target.classList.contains('lightbox-content')) closeLightbox();
         });
+
+        /* ==========================================================================
+           SHAKE DETECTION & PHYSICS ENGINE COLLAPSE (MATTER.JS)
+           ========================================================================== */
+        let engine, runner, bodies = [];
+        let isPhysicsActive = false;
+        let lastX = null, lastY = null, lastZ = null;
+        let shakeThreshold = 15; // Sensitivitas guncangan
+
+        function initShakeListener() {
+            // Minta izin sensor accelerometer (khusus iOS / Safari Modern)
+            if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                window.addEventListener('click', () => {
+                    DeviceMotionEvent.requestPermission()
+                        .then(response => {
+                            if (response === 'granted') {
+                                window.addEventListener('devicemotion', handleMotion);
+                            }
+                        })
+                        .catch(console.error);
+                }, { once: true });
+            } else {
+                window.addEventListener('devicemotion', handleMotion);
+            }
+
+            // Fitur guncangan manual melalui double-tap/klik pada header untuk pengetesan di PC
+            document.querySelector('.header-welcome').addEventListener('dblclick', triggerPhysicsCollapse);
+        }
+
+        function handleMotion(event) {
+            let current = event.accelerationIncludingGravity;
+            if (!current || current.x === null) return;
+
+            if (lastX !== null) {
+                let deltaX = Math.abs(current.x - lastX);
+                let deltaY = Math.abs(current.y - lastY);
+                let deltaZ = Math.abs(current.z - lastZ);
+
+                if ((deltaX + deltaY + deltaZ) > shakeThreshold && !isPhysicsActive) {
+                    triggerPhysicsCollapse();
+                }
+            }
+            lastX = current.x;
+            lastY = current.y;
+            lastZ = current.z;
+        }
+
+        function triggerPhysicsCollapse() {
+            if (isPhysicsActive) return;
+            isPhysicsActive = true;
+
+            document.getElementById('physicsResetBtn').style.display = 'flex';
+
+            // Ambil semua elemen target di halaman
+            const targetElements = [];
+            
+            // Header elements
+            targetElements.push(...document.querySelectorAll('.social-pop-icon'));
+            targetElements.push(document.querySelector('.welcome-title'));
+            targetElements.push(document.querySelector('.welcome-subtitle'));
+            
+            // Active Tab Room Cards
+            const activeRoom = document.querySelector('.tab-room.active');
+            if (activeRoom) {
+                targetElements.push(...activeRoom.querySelectorAll('.glass-card'));
+            }
+
+            // Navbar Wrapper
+            targetElements.push(document.getElementById('navbarWrapper'));
+
+            // Setup Matter.js Engine
+            const Engine = Matter.Engine,
+                  Runner = Matter.Runner,
+                  Bodies = Matter.Bodies,
+                  Composite = Matter.Composite;
+
+            engine = Engine.create();
+            engine.world.gravity.y = 1.2;
+
+            // Batas Bawah, Kiri, Kanan agar elemen tidak jatuh melebihi layar
+            const ground = Bodies.rectangle(window.innerWidth / 2, window.innerHeight + 25, window.innerWidth * 2, 50, { isStatic: true });
+            const leftWall = Bodies.rectangle(-25, window.innerHeight / 2, 50, window.innerHeight * 2, { isStatic: true });
+            const rightWall = Bodies.rectangle(window.innerWidth + 25, window.innerHeight / 2, 50, window.innerHeight * 2, { isStatic: true });
+
+            Composite.add(engine.world, [ground, leftWall, rightWall]);
+
+            // Konversi elemen HTML menjadi objek fisika
+            targetElements.forEach((el) => {
+                if (!el) return;
+                const rect = el.getBoundingClientRect();
+                if (rect.width === 0 || rect.height === 0) return;
+
+                // Salin ukuran & posisi fisik saat ini
+                el.classList.add('physics-active');
+                el.style.width = `${rect.width}px`;
+                el.style.height = `${rect.height}px`;
+                el.style.top = `${rect.top}px`;
+                el.style.left = `${rect.left}px`;
+
+                // Buat rigid body di Matter.js
+                const body = Bodies.rectangle(
+                    rect.left + rect.width / 2,
+                    rect.top + rect.height / 2,
+                    rect.width,
+                    rect.height,
+                    {
+                        restitution: 0.4, // Daya pantul
+                        friction: 0.5,     // Gesekan
+                        angle: (Math.random() - 0.5) * 0.2 // Beri sedikit efek kemiringan acak
+                    }
+                );
+
+                bodies.push({ element: el, body: body });
+                Composite.add(engine.world, body);
+            });
+
+            // Jalankan Simulasi Engine
+            runner = Runner.create();
+            Runner.run(runner, engine);
+
+            // Synchronize Loop: Hubungkan koordinat Matter.js ke CSS Transform
+            function updatePhysicsPositions() {
+                if (!isPhysicsActive) return;
+
+                bodies.forEach(({ element, body }) => {
+                    const x = body.position.x - parseFloat(element.style.width) / 2;
+                    const y = body.position.y - parseFloat(element.style.height) / 2;
+                    const angle = body.angle;
+
+                    element.style.transform = `translate3d(${x - parseFloat(element.style.left)}px, ${y - parseFloat(element.style.top)}px, 0px) rotate(${angle}rad)`;
+                });
+
+                requestAnimationFrame(updatePhysicsPositions);
+            }
+
+            requestAnimationFrame(updatePhysicsPositions);
+        }
+
+        function resetPhysicsLayout() {
+            if (!isPhysicsActive) return;
+            isPhysicsActive = false;
+
+            // Hentikan Runner & Engine Matter.js
+            if (runner) Matter.Runner.stop(runner);
+            if (engine) Matter.Engine.clear(engine);
+
+            // Bersihkan gaya inline fisika pada elemen
+            bodies.forEach(({ element }) => {
+                element.classList.remove('physics-active');
+                element.style.width = '';
+                element.style.height = '';
+                element.style.top = '';
+                element.style.left = '';
+                element.style.transform = '';
+            });
+
+            bodies = [];
+            document.getElementById('physicsResetBtn').style.display = 'none';
+
+            // Perbarui kembali posisi indikator navbar
+            updateNavIndicator(document.querySelector('.nav-btn.active'));
+        }
     </script>
 </body>
 </html>
